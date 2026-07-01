@@ -1,0 +1,17 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Calculator{% endblock %}</title>
+    <link rel="stylesheet" href="{% static 'calculator/bootstrap.min.css' %}">
+    <link rel="stylesheet" href="{% static 'calculator/main.css' %}">
+</head>
+<body style="background-color: rgb(221, 188, 128);">
+
+{% block content %}{% endblock %}
+
+<script src="{% static 'calculator/bootstrap.bundle.min.js' %}"></script>
+</body>
+</html>

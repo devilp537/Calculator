@@ -1,11 +1,71 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>calculator</title>
-</head>
-<body>
-    <h1>django calculator</h1>
-</body>
-</html>
+{% extends 'calculator/base.html' %}
+{% block title %}ماشین حساب{% endblock %}
+
+{% block content %}
+
+<!-- نوار بالا: اسم کاربر + خروج -->
+<div class="d-flex justify-content-end align-items-center p-3 gap-3">
+  <span>سلام، <strong>{{ user.username }}</strong></span>
+  <a href="{% url 'logout' %}" class="btn btn-sm btn-outline-danger">خروج</a>
+</div>
+
+<div class="container d-flex justify-content-center mt-3">
+    <div class="calculator border d-flex flex-column col-md-4 p-4 bg-light rounded-3 shadow">
+        <input type="text" disabled class="display p-3 col">
+        <div class="mt-3 buttons d-flex flex-column gap-3">
+            <div class="row gap-2">
+            <button type="button" class="cleanBtn btn btn-secondary col"> C </button>
+            <button type="button" class="btn btn-secondary col" onclick="displayUpdate(this)"> / </button>
+            <button type="button" class="btn btn-secondary col" onclick="displayUpdate(this)"> * </button>
+            <button type="button" class="delBtn btn btn-secondary col"> Del </button>
+            </div>
+            <div class="row gap-2">
+            <button type="button" class="btn btn-secondary col" onclick="displayUpdate(this)">7</button>
+            <button type="button" class="btn btn-secondary col" onclick="displayUpdate(this)">8</button>
+            <button type="button" class="btn btn-secondary col" onclick="displayUpdate(this)">9</button>
+            <button type="button" class="btn btn-secondary col" onclick="displayUpdate(this)"> - </button>
+            </div>
+            <div class="row gap-2">
+            <button type="button" class="btn btn-secondary col" onclick="displayUpdate(this)">4</button>
+            <button type="button" class="btn btn-secondary col" onclick="displayUpdate(this)">5</button>
+            <button type="button" class="btn btn-secondary col" onclick="displayUpdate(this)">6</button>
+            <button type="button" class="btn btn-secondary col" onclick="displayUpdate(this)"> + </button>
+            </div>
+            <div class="row gap-2">
+            <button type="button" class="btn btn-secondary col" onclick="displayUpdate(this)">1</button>
+            <button type="button" class="btn btn-secondary col" onclick="displayUpdate(this)">2</button>
+            <button type="button" class="btn btn-secondary col" onclick="displayUpdate(this)">3</button>
+            <button type="button" class="equalBtn btn btn-secondary col"> = </button>
+            </div>
+            <div class="row gap-2">
+            <button type="button" class="btn btn-secondary col" onclick="displayUpdate(this)">0</button>
+            <button type="button" class="btn btn-secondary col" onclick="displayUpdate(this)">.</button>
+            <button class="btn btn-primary col" type="button" data-bs-toggle="offcanvas" data-bs-target="#offcanvasRight" aria-controls="offcanvasRight">History</button>
+
+            <div class="offcanvas offcanvas-end" tabindex="-1" id="offcanvasRight" aria-labelledby="offcanvasRightLabel">
+            <div class="offcanvas-header">
+                <h5 class="offcanvas-title" id="offcanvasRightLabel">Last Operations</h5>
+                <button class="cleanHistory btn btn-secondary ms-5">Clean</button>
+                <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+            </div>
+            <div class="offcanvas-body">
+                <ol class="history">
+                    {% for item in history %}
+                    <li class="operations">{{ item.expression }} = {{ item.result }}</li>
+                    {% endfor %}
+                </ol>
+            </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+{% load static %}
+<script>
+  // CSRF token لازمه برای اینکه Django اجازه بده JS بهش POST بفرسته
+  // (یکی از مکانیزم‌های امنیتی جنگو در برابر حملات CSRF)
+const CSRF_TOKEN = '{{ csrf_token }}';
+</script>
+<script src="{% static 'calculator/main.js' %}"></script>
+{% endblock %}
