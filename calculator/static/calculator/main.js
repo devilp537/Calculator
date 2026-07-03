@@ -19,6 +19,18 @@ const deleteDisplay = () => {displayEL.value = displayEL.value.slice(0, -1)};
 //  بخش جدید: ارتباط با Django
 // ════════════════════════════
 
+// ─── دریافت CSRF Token از کوکی ──────────────────────
+function getCSRFToken() {
+    const name = 'csrftoken';
+    const cookies = document.cookie.split(';');
+    for (let cookie of cookies) {
+        const [key, value] = cookie.trim().split('=');
+        if (key === name) return value;
+    }
+    return '';
+}
+const CSRF_TOKEN = getCSRFToken();
+
 // ذخیره یه محاسبه در دیتابیس (از طریق API جنگو)
 async function saveToServer(expression, result) {
     try {
