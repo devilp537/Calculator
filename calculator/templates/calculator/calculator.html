@@ -46,15 +46,15 @@
             <div class="offcanvas-header">
                 <h5 class="offcanvas-title" id="offcanvasRightLabel">Last Operations</h5>
                 <button class="cleanHistory btn btn-sm btn-secondary ms-5">Clean</button>
-                <button class="deleteLastBtn btn btn-sm btn-secondary mx-2 col-4">delete last</button>
+                <button class="deleteLastBtn btn btn-sm btn-secondary mx-2 col-4">Delete last</button>
                 <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
             </div>
             <div class="offcanvas-body">
-                <ul class="history">
+                <ol class="history">
                     {% for item in history %}
                     <li class="operations">{{ item.expression }} = {{ item.result }}</li>
                     {% endfor %}
-                </ul>
+                </ol>
             </div>
             </div>
 

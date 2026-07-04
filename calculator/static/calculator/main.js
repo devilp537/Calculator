@@ -6,7 +6,7 @@ const delBtnEL = document.querySelector('.delBtn');
 const equalBtnEL = document.querySelector('.equalBtn');
 const historyEL = document.querySelector('.history');
 const cleanHistoryEL = document.querySelector('.cleanHistory');
-const deleteLastBtn = document.querySelector('.deleteLastOperation');
+const deleteLastBtn = document.querySelector('.deleteLastBtn');
 const timer = 1500
 
 
@@ -39,7 +39,7 @@ async function saveToServer(expression, result) {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'CSRFToken': CSRF_TOKEN, // امنیت — جنگو بدون این، درخواست را رد می‌کنه
+                'X-CSRFToken': CSRF_TOKEN, // امنیت — جنگو بدون این، درخواست را رد می‌کنه
             },
             body: JSON.stringify({ expression, result }),
         });
@@ -59,7 +59,7 @@ async function clearServerHistory() {
         await fetch('/api/history/clear/', {
             method: 'POST',
             headers: {
-                'CSRFToken': CSRF_TOKEN,
+                'X-CSRFToken': CSRF_TOKEN,
             },
         });
     } catch (err) {
@@ -86,7 +86,7 @@ async function deleteLastOperation() {
         const response = await fetch('/api/history/delete-last/', {
             method: 'DELETE',
             headers: {
-                'CSRFToken': CSRF_TOKEN,
+                'X-CSRFToken': CSRF_TOKEN,
             },
         });
 
