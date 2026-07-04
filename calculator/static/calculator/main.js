@@ -29,7 +29,7 @@ function getCSRFToken() {
     }
     return '';
 }
-const CSRF_TOKEN = getCSRFToken();
+const CSRFToken = getCSRFToken();
 
 // ذخیره یه محاسبه در دیتابیس (از طریق API جنگو)
 async function saveToServer(expression, result) {
@@ -38,7 +38,7 @@ async function saveToServer(expression, result) {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'X-CSRFToken': CSRF_TOKEN, // امنیت — جنگو بدون این، درخواست را رد می‌کنه
+                'CSRFToken': CSRF_TOKEN, // امنیت — جنگو بدون این، درخواست را رد می‌کنه
             },
             body: JSON.stringify({ expression, result }),
         });
@@ -58,7 +58,7 @@ async function clearServerHistory() {
         await fetch('/api/history/clear/', {
             method: 'POST',
             headers: {
-                'X-CSRFToken': CSRF_TOKEN,
+                'CSRFToken': CSRF_TOKEN,
             },
         });
     } catch (err) {
