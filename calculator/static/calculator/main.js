@@ -6,6 +6,7 @@ const delBtnEL = document.querySelector('.delBtn');
 const equalBtnEL = document.querySelector('.equalBtn');
 const historyEL = document.querySelector('.history');
 const cleanHistoryEL = document.querySelector('.cleanHistory');
+const deleteLastBtn = document.querySelector('.deleteLastOperation');
 const timer = 1500
 
 
@@ -66,6 +67,39 @@ async function clearServerHistory() {
     }
 }
 
+// ─── حذف آخرین عملیات از تاریخچه ────────────────────
+async function deleteLastOperation() {
+    // ۱. پیدا کردن آخرین آیتم تاریخچه در صفحه
+    const lastItem = document.querySelector('.history .operations:last-child');
+    
+    // ۲. اگه هیچ آیتمی نبود، به کاربر بگو
+    if (!lastItem) {
+        console.log('⚠️ هیچ آیتمی برای حذف وجود ندارد');
+        return;
+    }
+
+    // ۳. حذف از صفحه (DOM)
+    lastItem.remove();
+
+    // ۴. درخواست به سرور برای حذف آخرین آیتم از دیتابیس
+    try {
+        const response = await fetch('/api/history/delete-last/', {
+            method: 'DELETE',
+            headers: {
+                'CSRFToken': CSRF_TOKEN,
+            },
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json();
+            console.error('❌ خطا در حذف آخرین عملیات:', errorData.error);
+        } else {
+            console.log('✅ آخرین عملیات با موفقیت حذف شد');
+        }
+    } catch (err) {
+        console.error('❌ خطا در ارتباط با سرور:', err);
+    }
+}
 
 // ════════════════════════════
 //  منطق ماشین‌حساب (همون قبلی)
@@ -80,7 +114,7 @@ const equalDisplay = function() {
     try{
         const primaryDisplay = displayEL.value
         displayEL.value = eval(displayEL.value);
-        const lastOperations = ` <li class = 'operations'> ${primaryDisplay} = ${displayEL.value} </li> `
+        const lastOperations = ` <li class = 'operations'>  ${primaryDisplay} = ${displayEL.value} </li> `
         historyEL.insertAdjacentHTML("beforeend",lastOperations);
 
         // اضافه شد: نتیجه را به Django بفرست تا ذخیره بشه
@@ -100,3 +134,4 @@ cleanBtnEL.addEventListener('click', cleanDisplay);
 delBtnEL.addEventListener('click', deleteDisplay);
 equalBtnEL.addEventListener('click', equalDisplay);
 cleanHistoryEL.addEventListener('click', cleanHistoryDisplay);
+deleteLastBtn.addEventListener('click', deleteLastOperation);

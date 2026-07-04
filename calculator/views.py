@@ -140,3 +140,18 @@ def clear_history_api(request):
     """
     CalculationHistory.objects.filter(user=request.user).delete()
     return JsonResponse({'success': True})
+
+
+@login_required
+def delete_last_history_api(request):
+    if request.method != 'DELETE':
+        return JsonResponse({'error': 'Method not allowed'}, status=405)
+
+    # پیدا کردن آخرین تاریخچه‌ی کاربر (بر اساس created_at)
+    last_item = CalculationHistory.objects.filter(user=request.user).first()
+    
+    if last_item:
+        last_item.delete()
+        return JsonResponse({'success': True, 'message': 'آخرین عملیات حذف شد'})
+    else:
+        return JsonResponse({'error': 'هیچ آیتمی برای حذف وجود ندارد'}, status=404)
