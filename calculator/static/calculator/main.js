@@ -1,24 +1,4 @@
-'use strict'
-
-const displayEL = document.querySelector('.display');
-const cleanBtnEL = document.querySelector('.cleanBtn');
-const delBtnEL = document.querySelector('.delBtn');
-const equalBtnEL = document.querySelector('.equalBtn');
-const historyEL = document.querySelector('.history');
-const cleanHistoryEL = document.querySelector('.cleanHistory');
-const deleteLastBtn = document.querySelector('.deleteLastBtn');
-const timer = 1500
-
-
-const displayUpdate = (element) => { displayEL.value += element.textContent };
-const cleanDisplay = () => {displayEL.value = ""};
-const removeClass = () => {displayEL.classList.remove('displayError')};
-const deleteDisplay = () => {displayEL.value = displayEL.value.slice(0, -1)};
-
-
-// ════════════════════════════
-//  بخش جدید: ارتباط با Django
-// ════════════════════════════
+'use strict';
 
 // ─── دریافت CSRF Token از کوکی ──────────────────────
 function getCSRFToken() {
@@ -30,108 +10,135 @@ function getCSRFToken() {
     }
     return '';
 }
-const CSRFToken = getCSRFToken();
+const CSRF_TOKEN = getCSRFToken();
 
-// ذخیره یه محاسبه در دیتابیس (از طریق API جنگو)
+// ─── DOM Elements ────────────────────────────────────
+const displayEL = document.querySelector('.display');
+const cleanBtnEL = document.querySelector('.cleanBtn');
+const delBtnEL = document.querySelector('.delBtn');
+const equalBtnEL = document.querySelector('.equalBtn');
+const historyEL = document.querySelector('.history');
+const cleanHistoryEL = document.querySelector('.cleanHistory');
+const deleteLastBtn = document.querySelector('.deleteLastBtn');
+const timer = 1500;
+
+const displayUpdate = (element) => { displayEL.value += element.textContent; };
+const cleanDisplay = () => { displayEL.value = ''; };
+const removeClass = () => { displayEL.classList.remove('displayError'); };
+const deleteDisplay = () => { displayEL.value = displayEL.value.slice(0, -1); };
+
 async function saveToServer(expression, result) {
     try {
         const response = await fetch('/api/history/save/', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'X-CSRFToken': CSRF_TOKEN, // امنیت — جنگو بدون این، درخواست را رد می‌کنه
+                'X-CSRFToken': CSRF_TOKEN,
             },
             body: JSON.stringify({ expression, result }),
         });
-
-        if (!response.ok) {
-            console.error('ذخیره هیستوری ناموفق بود');
+        if (response.ok) {
+            const data = await response.json();
+            const lastItem = historyEL.querySelector('.operations:last-child');
+            if (lastItem && data.performed_by) {
+                const badge = data.performed_by.includes('(admin)')
+                    ? <span class="badge bg-warning text-dark ms-1">👑 ادمین</span>
+                    : '';
+                lastItem.innerHTML +=  `<small class="text-muted">(${data.performed_by})</small>${badge};`
+            }
+        } else {
+            console.error('❌ ذخیره هیستوری ناموفق بود');
         }
     } catch (err) {
-        // اگه اینترنت قطع بود یا سرور در دسترس نبود
-        console.error('خطا در اتصال به سرور:', err);
+        console.error('❌ خطا در اتصال به سرور:', err);
     }
 }
 
-// پاک کردن کل هیستوری از دیتابیس
 async function clearServerHistory() {
     try {
         await fetch('/api/history/clear/', {
             method: 'POST',
-            headers: {
-                'X-CSRFToken': CSRF_TOKEN,
-            },
+            headers: { 'X-CSRFToken': CSRF_TOKEN },
         });
     } catch (err) {
-        console.error('خطا در پاک کردن هیستوری:', err);
+        console.error('❌ خطا در پاک کردن هیستوری:', err);
     }
 }
 
-// ─── حذف آخرین عملیات از تاریخچه ────────────────────
 async function deleteLastOperation() {
-    // ۱. پیدا کردن آخرین آیتم تاریخچه در صفحه
     const lastItem = document.querySelector('.history .operations:last-child');
-    
-    // ۲. اگه هیچ آیتمی نبود، به کاربر بگو
     if (!lastItem) {
         console.log('⚠️ هیچ آیتمی برای حذف وجود ندارد');
         return;
     }
-
-    // ۳. حذف از صفحه (DOM)
     lastItem.remove();
-
-    // ۴. درخواست به سرور برای حذف آخرین آیتم از دیتابیس
     try {
         const response = await fetch('/api/history/delete-last/', {
             method: 'DELETE',
-            headers: {
-                'X-CSRFToken': CSRF_TOKEN,
-            },
+            headers: { 'X-CSRFToken': CSRF_TOKEN },
         });
-
         if (!response.ok) {
             const errorData = await response.json();
             console.error('❌ خطا در حذف آخرین عملیات:', errorData.error);
         } else {
-            console.log('✅ آخرین عملیات با موفقیت حذف شد');
+            await loadHistory();
         }
     } catch (err) {
         console.error('❌ خطا در ارتباط با سرور:', err);
     }
 }
 
-// ════════════════════════════
-//  منطق ماشین‌حساب (همون قبلی)
-// ════════════════════════════
+async function loadHistory() {
+    try {
+        const response = await fetch('/api/history/');
+        if (!response.ok) {
+            console.error('❌ دریافت تاریخچه ناموفق');
+            return;
+        }
+        const data = await response.json();
+        if (historyEL) {
+            historyEL.innerHTML = '';
+            data.history.forEach(item => {
+                const li = document.createElement('li');
+                li.className = 'operations';
+                let badge = '';
+                if (item.performed_by && item.performed_by.includes('(admin)')) {
+                    badge = <span class="badge bg-warning text-dark ms-1">👑 ادمین</span>;
+}
+                li.innerHTML = `${item.expression} = ${item.result} <small class="text-muted">(${item.performed_by || 'کاربر'})</small>${badge};`
+                historyEL.appendChild(li);
+            });
+        }
+    } catch (err) {
+        console.error('❌ خطا در دریافت تاریخچه:', err);
+    }
+}
 
-const cleanHistoryDisplay = () => {
-    document.querySelectorAll('.operations').forEach(operation => {operation.remove()});
-    clearServerHistory(); // اضافه شد: هیستوری سمت سرور هم پاک بشه
+const cleanHistoryDisplay = async () => {
+    document.querySelectorAll('.operations').forEach(op => op.remove());
+    await clearServerHistory();
+    await loadHistory();
 };
 
 const equalDisplay = function() {
-    try{
-        const primaryDisplay = displayEL.value
+    try {
+        const primaryDisplay = displayEL.value;
         displayEL.value = eval(displayEL.value);
-        const lastOperations = ` <li class = 'operations'>  ${primaryDisplay} = ${displayEL.value} </li> `
-        historyEL.insertAdjacentHTML("beforeend",lastOperations);
-
-        // اضافه شد: نتیجه را به Django بفرست تا ذخیره بشه
+        const lastOperations = <li class='operations'>${primaryDisplay} = ${displayEL.value}</li>;
+        historyEL.insertAdjacentHTML('beforeend', lastOperations);
         saveToServer(primaryDisplay, String(displayEL.value));
-    }
-    catch{
+    } catch {
         displayEL.value = 'error';
         displayEL.classList.add('displayError');
-        setTimeout(cleanDisplay,timer);
-        setTimeout(removeClass,timer);
+        setTimeout(cleanDisplay, timer);
+        setTimeout(removeClass, timer);
     }
-
-}
-
+};
 
 cleanBtnEL.addEventListener('click', cleanDisplay);
 delBtnEL.addEventListener('click', deleteDisplay);
 equalBtnEL.addEventListener('click', equalDisplay);
 cleanHistoryEL.addEventListener('click', cleanHistoryDisplay);
 deleteLastBtn.addEventListener('click', deleteLastOperation);
+
+document.addEventListener('DOMContentLoaded', loadHistory);

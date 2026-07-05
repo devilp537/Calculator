@@ -4,9 +4,22 @@
 {% block content %}
 
 <!-- نوار بالا: اسم کاربر + خروج -->
-<div class="d-flex justify-content-end align-items-center p-3 gap-3">
-  <span>سلام، <strong>{{ user.username }}</strong></span>
-  <a href="{% url 'logout' %}" class="btn btn-sm btn-outline-danger">خروج</a>
+<div class="d-flex justify-content-between align-items-center p-3">
+  <div class="d-flex align-items-center gap-2">
+    <span>
+      {% if is_admin_mode %}
+        👑 در حال کار به جای: <strong>{{ display_name }}</strong>
+      {% else %}
+        سلام، <strong>{{ display_name }}</strong>
+      {% endif %}
+    </span>
+  </div>
+  <div class="d-flex gap-2">
+    {% if request.user.is_superuser %}
+      <a href="{% url 'admin_panel' %}" class="btn btn-sm btn-warning">پنل ادمین</a>
+    {% endif %}
+    <a href="{% url 'logout' %}" class="btn btn-sm btn-outline-danger">خروج</a>
+  </div>
 </div>
 
 <div class="container d-flex justify-content-center mt-3">
@@ -52,7 +65,17 @@
             <div class="offcanvas-body">
                 <ol class="history">
                     {% for item in history %}
-                    <li class="operations">{{ item.expression }} = {{ item.result }}</li>
+                    <li class="operations">
+                      {{ item.expression }} = {{ item.result }}
+                      {% if item.performed_by %}
+                        <small class="text-muted">({{ item.performed_by }})</small>
+                      {% endif %}
+                      {% if 'admin' in item.performed_by %}
+                        <span class="badge bg-warning text-dark ms-1">👑 ادمین</span>
+                      {% endif %}
+                    </li>
+                    {% empty %}
+                    <li class="text-muted">هیچ عملیاتی انجام نشده</li>
                     {% endfor %}
                 </ol>
             </div>

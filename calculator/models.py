@@ -14,6 +14,7 @@ class CalculationHistory(models.Model):
 
     expression = models.CharField(max_length=255)  # مثلاً "2+2"
     result = models.CharField(max_length=255)       # مثلاً "4"
+    performed_by = models.CharField(max_length=255, default='')
 
     created_at = models.DateTimeField(auto_now_add=True)  # زمان ذخیره، خودکار پر میشه
 
