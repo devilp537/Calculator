@@ -86,10 +86,5 @@
 </div>
 
 {% load static %}
-<script>
-  // CSRF token لازمه برای اینکه Django اجازه بده JS بهش POST بفرسته
-  // (یکی از مکانیزم‌های امنیتی جنگو در برابر حملات CSRF)
-const CSRF_TOKEN = '{{ csrf_token }}';
-</script>
 <script src="{% static 'calculator/main.js' %}"></script>
 {% endblock %}

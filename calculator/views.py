@@ -1,7 +1,3 @@
-"""
-calculator/views.py
-"""
-
 import json
 import re
 
@@ -14,13 +10,8 @@ from django.views.decorators.http import require_POST, require_GET
 
 from .models import CalculationHistory
 
-# ─── اعتبارسنجی عبارت ریاضی ──────────────────────────
 SAFE_EXPRESSION = re.compile(r'^[0-9+\-*/.\s]+$')
 
-
-# ════════════════════════════
-#  صفحات HTML
-# ════════════════════════════
 
 def register_view(request):
     if request.method == 'POST':
@@ -105,12 +96,7 @@ def calculator_view(request):
     })
 
 
-# ════════════════════════════
-#  Helper
-# ════════════════════════════
-
 def _get_target_user(request):
-    """برگرداندن کاربر هدف (ادمین یا کاربر انتخاب‌شده) و وضعیت ادمین بودن"""
     selected_user_id = request.session.get('selected_user_id', None)
     if request.user.is_superuser and selected_user_id:
         try:
@@ -119,10 +105,6 @@ def _get_target_user(request):
             pass
     return request.user, False
 
-
-# ════════════════════════════
-#  API endpoints
-# ════════════════════════════
 
 @login_required
 @require_POST
@@ -138,21 +120,13 @@ def save_history_api(request):
             return JsonResponse({'error': 'عبارت نامعتبره'}, status=400)
 
         target_user, is_admin_mode = _get_target_user(request)
-
-        # کاربری که عملیات رو انجام داده (همیشه request.user)
-        performer = request.user
-
-        # مقدار performed_by رو بر اساس انجام‌دهنده محاسبه کن
-        if is_admin_mode:
-            performed_by = f"{performer.username}(admin)"  # ادمین + پسوند
-        else:
-            performed_by = performer.username  # کاربر عادی
+        performed_by = f"{target_user.username}(admin)" if is_admin_mode else target_user.username
 
         history_item = CalculationHistory.objects.create(
-            user=target_user,                # هیستوری به اسم این کاربر ثبت میشه
+            user=target_user,
             expression=expression,
             result=result,
-            performed_by=performed_by,       # انجام‌دهنده واقعی
+            performed_by=performed_by,
         )
 
         return JsonResponse({
@@ -196,10 +170,8 @@ def clear_history_api(request):
 def delete_last_history_api(request):
     if request.method != 'DELETE':
         return JsonResponse({'error': 'Method not allowed'}, status=405)
-
     target_user, _ = _get_target_user(request)
     last_item = CalculationHistory.objects.filter(user=target_user).first()
-
     if last_item:
         last_item.delete()
         return JsonResponse({'success': True})
