@@ -12,4 +12,4 @@ from .models import CalculationHistory
 class CalculationHistoryAdmin(admin.ModelAdmin):
     list_display = ('user', 'expression', 'result', 'created_at')
     list_filter = ('user', 'created_at')
-    search_fields = ('expression', 'result')
+    search_fields = ('expression', 'result', 'performed_by')
